@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"parser/api/handlers"
 	"parser/db/mongodb"
 	"parser/router"
 
@@ -25,7 +26,10 @@ func main() {
     
     e := router.New()
 
+    go handlers.PoolingNewBlocks()
+    
     e.Start(":8000")
+
 
     defer func() {
       if err := mongodb.DisconnectMongoDB(); err != nil {
@@ -33,4 +37,6 @@ func main() {
       }
       fmt.Println("Disconnected from MongoDB")
   }()
+
+  select {}
 }

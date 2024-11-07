@@ -17,7 +17,6 @@ func MongoDBMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
     }
 }
 
-
 func SetMongoDBMiddleWare(c *echo.Echo) {
 	c.Use(MongoDBMiddleware)
 }

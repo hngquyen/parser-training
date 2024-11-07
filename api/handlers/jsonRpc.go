@@ -2,9 +2,15 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
+	"parser/db/mongodb"
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type JSONRPCRequest struct {
@@ -71,4 +77,88 @@ func getTransactionsByBlockNumber(blockNumber string) ([]Transaction, error) {
         return nil, err
     }
     return block.Transactions, nil
+}
+
+func getSubscribedAddress() ([]string, error) {
+	collection := mongodb.GetClient().Database(mongodb.DatabaseName).Collection(mongodb.CollectionName)
+
+	cursor, err := collection.Find(context.Background(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	var subscribedAddresses []string
+	for cursor.Next(context.Background()) {
+		var address struct {
+			Address string `bson:"address"`
+		}
+		if err := cursor.Decode(&address); err != nil {
+			return nil, err
+		}
+		subscribedAddresses = append(subscribedAddresses, address.Address)
+	}
+
+	return subscribedAddresses, nil
+}
+
+func processingTransactionsForSubscribedAddress(transactions []Transaction) error {
+	collection := mongodb.GetClient().Database(mongodb.DatabaseName).Collection(mongodb.CollectionName)
+
+	subscribedAddresses, err := getSubscribedAddress()
+	if err != nil {
+		return  err
+	}
+
+	for _, tx := range transactions {
+		for _, address := range subscribedAddresses {
+			if tx.From == address || tx.To == address {
+				
+				_, err := collection.UpdateOne(
+					context.Background(),
+					bson.M{"address": address},
+					bson.M{
+						"$push": bson.M{"transactions": tx},
+					},
+				)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func PoolingNewBlocks() {
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+
+	var lastBlockNumber string
+	for {
+		select {
+		case <-ticker.C:
+			blockNumber, err := getCurrentBlockNumber()
+			if err != nil {
+				log.Println("Error fetching block number:", err)
+				continue
+			}
+
+			if blockNumber != lastBlockNumber {
+				lastBlockNumber = blockNumber
+
+				transactions, err := getTransactionsByBlockNumber(blockNumber)
+
+				if err != nil {
+					log.Println("Error fetching transactions:", err)
+					continue
+				}
+
+				err = processingTransactionsForSubscribedAddress(transactions)
+				if err != nil {
+					log.Println("Error processing transactions:", err)
+				}
+			}
+		}
+	}
 }

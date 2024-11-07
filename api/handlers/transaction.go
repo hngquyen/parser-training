@@ -19,7 +19,7 @@ func GetTransactionByAddress(c echo.Context) error  {
 	address := c.Param("address")
 
 	client := middlewares.GetMongoClient(c)
-	collection := client.Database(mongodb.DatabaseName).Collection(CollectionName)
+	collection := client.Database(mongodb.DatabaseName).Collection(mongodb.CollectionName)
 
 	var result TransactionResponse
 	err:= collection.FindOne(context.Background(), bson.M{"address": address}).Decode(&result)

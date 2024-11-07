@@ -9,6 +9,7 @@ import (
 
 const MongoClientKey = "MongoClient"
 const DatabaseName = "parser"
+const CollectionName = "subscribedAddress"
 
 var client *mongo.Client
 

@@ -11,8 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const CollectionName = "subscribedAddress"
-
 func SubscribeAddress(c echo.Context) error {
 	address := c.FormValue("address")
 	if address == "" {
@@ -20,7 +18,7 @@ func SubscribeAddress(c echo.Context) error {
     }
 
 	client := middlewares.GetMongoClient(c)
-	collection := client.Database(mongodb.DatabaseName).Collection(CollectionName)
+	collection := client.Database(mongodb.DatabaseName).Collection(mongodb.CollectionName)
 	
 	err := collection.FindOne(context.Background(), bson.M{"address": address,}).Err()
 	if err != mongo.ErrNoDocuments {
@@ -29,7 +27,7 @@ func SubscribeAddress(c echo.Context) error {
 
 	newAddress := bson.M{
 		"address":     address,
-		"transactions": []Transaction{}, // Initially no transactions
+		"transactions": []Transaction{}, 
 	}
 
 	_, err = collection.InsertOne(context.Background(), newAddress)
