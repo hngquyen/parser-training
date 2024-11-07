@@ -1,23 +1,41 @@
 package handlers
 
 import (
-	"log"
+	"context"
 	"net/http"
+	"parser/api/middlewares"
+	"parser/db/mongodb"
 
 	"github.com/labstack/echo/v4"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
+
+const CollectionName = "subscribedAddress"
 
 func SubscribeAddress(c echo.Context) error {
 	address := c.FormValue("address")
-	log.Printf("Address: %#v", address)
-
 	if address == "" {
         return c.JSON(http.StatusBadRequest, map[string]string{"error": "Address form field is required"})
     }
 
-	// TODO: Add address to database
+	client := middlewares.GetMongoClient(c)
+	collection := client.Database(mongodb.DatabaseName).Collection(CollectionName)
+	
+	err := collection.FindOne(context.Background(), bson.M{"address": address}).Err()
+	if err != mongo.ErrNoDocuments {
+		return c.JSON(http.StatusConflict, map[string]string{"error": "Address already subscribed"})
+	}
+
+	_, err = collection.InsertOne(context.Background(), bson.M{
+		"address": address,
+	})
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to subscribe address"})
+	}
 
 	return c.JSON(http.StatusOK, map[string]string{
+		"message": "Address subscribed successfully",
 		"address": address,
 	})
 }

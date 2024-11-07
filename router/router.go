@@ -11,6 +11,7 @@ func New() *echo.Echo {
     e := echo.New()
 
 	middlewares.SetLoggerMiddlewares(e)
+	middlewares.SetMongoDBMiddleWare(e)
 	
 	api.MainGroup(e)
 
