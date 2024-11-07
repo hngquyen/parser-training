@@ -1,15 +1,20 @@
 package main
 
 import (
-	"net/http"
+	"log"
 
-	"github.com/labstack/echo/v4"
+	"parser/router"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	e := echo.New()
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Wakanda, forever!")
-	})
-	e.Logger.Fatal(e.Start(":1323"))
+    err := godotenv.Load()
+    if err != nil {
+      log.Fatal("Error loading .env file")
+    }
+    
+    e := router.New()
+
+    e.Start(":8000")
 }
