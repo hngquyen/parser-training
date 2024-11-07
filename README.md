@@ -1,1 +1,1 @@
-[# parser-training](https://github.com/WolffunService/parser-exercise)
+https://github.com/WolffunService/parser-exercise
