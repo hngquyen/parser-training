@@ -40,7 +40,7 @@ func GetCurrentBlockNumber(c echo.Context) error {
     })
 }
 
-
+// Maybe not need
 func GetTransactionsByBlockNumber(c echo.Context) error {
 	blockNumber := c.Param("blockNumber")
     transactions, err := getTransactionsByBlockNumber(blockNumber)
