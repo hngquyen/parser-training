@@ -22,14 +22,17 @@ func SubscribeAddress(c echo.Context) error {
 	client := middlewares.GetMongoClient(c)
 	collection := client.Database(mongodb.DatabaseName).Collection(CollectionName)
 	
-	err := collection.FindOne(context.Background(), bson.M{"address": address}).Err()
+	err := collection.FindOne(context.Background(), bson.M{"address": address,}).Err()
 	if err != mongo.ErrNoDocuments {
 		return c.JSON(http.StatusConflict, map[string]string{"error": "Address already subscribed"})
 	}
 
-	_, err = collection.InsertOne(context.Background(), bson.M{
-		"address": address,
-	})
+	newAddress := bson.M{
+		"address":     address,
+		"transactions": []Transaction{}, // Initially no transactions
+	}
+
+	_, err = collection.InsertOne(context.Background(), newAddress)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to subscribe address"})
 	}

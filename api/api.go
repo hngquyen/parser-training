@@ -11,4 +11,6 @@ func MainGroup(e *echo.Echo) {
     e.GET("/transactions/:blockNumber", handlers.GetTransactionsByBlockNumber)
 
 	e.POST("/subscribe", handlers.SubscribeAddress)
+
+	e.GET("/transactions/:address", handlers.GetTransactionByAddress)
 }
