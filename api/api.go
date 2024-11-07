@@ -12,5 +12,5 @@ func MainGroup(e *echo.Echo) {
 
 	e.POST("/subscribe", handlers.SubscribeAddress)
 
-	e.GET("/transactions/:address", handlers.GetTransactionByAddress)
+	e.GET("/transactions", handlers.GetTransactionByAddress)
 }

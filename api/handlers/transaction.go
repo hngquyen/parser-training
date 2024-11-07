@@ -16,15 +16,19 @@ type TransactionResponse struct {
 }
 
 func GetTransactionByAddress(c echo.Context) error  {
-	address := c.Param("address")
+	address := c.QueryParam("address")
 
+	if address == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Bad request"})
+	 }
+	 
 	client := middlewares.GetMongoClient(c)
 	collection := client.Database(mongodb.DatabaseName).Collection(mongodb.CollectionName)
 
 	var result TransactionResponse
 	err:= collection.FindOne(context.Background(), bson.M{"address": address}).Decode(&result)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Address not subscribed"})
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "Address not subscribed"})
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
