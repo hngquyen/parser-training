@@ -24,7 +24,7 @@ func GetTransactionByAddress(c echo.Context) error  {
 	var result TransactionResponse
 	err:= collection.FindOne(context.Background(), bson.M{"address": address}).Decode(&result)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, map[string]string{"error": "Address not subscribed"})
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Address not subscribed"})
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
